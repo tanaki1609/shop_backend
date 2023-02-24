@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from product.models import Product, Category
-from product.serializers import ProductSerializer
+from product.serializers import ProductSerializer, ProductCreateUpdateSerializer
 
 
 @api_view(['GET', 'POST'])
@@ -14,13 +14,17 @@ def product_list_api_view(request):
         return Response(data=serializer.data)
     elif request.method == 'POST':
         """CREATE"""
-        title = request.data.get('title')
-        text = request.data.get('text')
-        price = request.data.get('price')
-        amount = request.data.get('amount')
-        is_active = request.data.get('is_active')
-        category_id = request.data.get('category_id')
-        tags = request.data.get('tags')
+        serializer = ProductCreateUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(data=serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        title = serializer.validated_data.get('title')
+        text = serializer.validated_data.get('text')
+        price = serializer.validated_data.get('price')
+        amount = serializer.validated_data.get('amount')
+        is_active = serializer.validated_data.get('is_active')
+        category_id = serializer.validated_data.get('category_id')
+        tags = serializer.validated_data.get('tags')
         product = Product.objects.create(title=title, text=text, price=price,
                                          amount=amount, is_active=is_active,
                                          category_id=category_id)
@@ -41,6 +45,8 @@ def product_detail_api_view(request, id):
         serializer = ProductSerializer(product, many=False)
         return Response(data=serializer.data)
     elif request.method == 'PUT':
+        serializer = ProductCreateUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         product.title = request.data.get('title')
         product.text = request.data.get('text')
         product.price = request.data.get('price')
