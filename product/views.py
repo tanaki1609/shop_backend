@@ -16,6 +16,7 @@ class CategoryListAPIView(ListCreateAPIView):
 
 @api_view(['GET', 'POST'])
 def product_list_api_view(request):
+    print(request.user)
     if request.method == 'GET':
         """LIST"""
         products = Product.objects.all()
