@@ -1,11 +1,30 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from product.models import Product, Category
+from product.models import Product, Category, Tag
 from product.serializers import ProductSerializer, \
-    ProductCreateUpdateSerializer, CategorySerializer
-from rest_framework.generics import ListCreateAPIView
+    ProductCreateUpdateSerializer, CategorySerializer, TagSerializer
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.viewsets import ModelViewSet
+
+
+class TagModelViewSet(ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    pagination_class = PageNumberPagination
+    lookup_field = 'id'
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset().order_by('-name'))
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class CategoryListAPIView(ListCreateAPIView):
@@ -14,16 +33,17 @@ class CategoryListAPIView(ListCreateAPIView):
     pagination_class = PageNumberPagination
 
 
-@api_view(['GET', 'POST'])
-def product_list_api_view(request):
-    print(request.user)
-    if request.method == 'GET':
-        """LIST"""
-        products = Product.objects.all()
-        serializer = ProductSerializer(products, many=True)
-        return Response(data=serializer.data)
-    elif request.method == 'POST':
-        """CREATE"""
+class CategoryDetailAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_field = 'id'
+
+
+class ProductListCreateAPIView(ListCreateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+    def create(self, request, *args, **kwargs):
         serializer = ProductCreateUpdateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(data=serializer.errors,
