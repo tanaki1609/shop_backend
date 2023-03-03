@@ -2,7 +2,16 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from product.models import Product, Category
-from product.serializers import ProductSerializer, ProductCreateUpdateSerializer
+from product.serializers import ProductSerializer, \
+    ProductCreateUpdateSerializer, CategorySerializer
+from rest_framework.generics import ListCreateAPIView
+from rest_framework.pagination import PageNumberPagination
+
+
+class CategoryListAPIView(ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = PageNumberPagination
 
 
 @api_view(['GET', 'POST'])
