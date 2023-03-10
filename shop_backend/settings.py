@@ -132,3 +132,5 @@ REST_FRAMEWORK = {
     ],
     'PAGE_SIZE': 3
 }
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
